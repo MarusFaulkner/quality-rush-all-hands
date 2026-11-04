@@ -260,7 +260,7 @@ img{display:block;max-width:100%}
 
 /* Mike's panel sits over his own machines, below the status tags and the suspect-lot alert */
 .stage .rp{left:1.2%;top:33%;transform:none;width:35%;padding:5px 6px 6px}
-.stage .rp .rp-h{margin-bottom:4px;gap:6px} .stage .rp .rp-h b{font-size:clamp(12px,1.6vw,16px)} .stage .rp .rp-h .txt{font-size:clamp(11px,1.4vw,13px)}
+.stage .rp .rp-h{margin-bottom:4px;gap:6px} .stage .rp .rp-h b{font-size:clamp(12px,1.6vw,16px)} .stage .rp .rp-h .txt{font-size:clamp(10px,1.3vw,13px)}
 .stage .rp .chip{font-size:10.5px;padding:1px 6px}
 .stage .rp .fixrow{gap:6px} .stage .rp .fixbtn{font-size:clamp(15px,2.1vw,22px);padding:5px 10px}
 .stage .rp .fixbtn small{font-size:10px} .stage .rp .meter{height:18px} .stage .rp .meter span{font-size:11px}
@@ -306,4 +306,14 @@ img{display:block;max-width:100%}
   #play.narrow .hud .tile .k{font-size:8px;letter-spacing:.2px} #play.narrow .hud .tile .v{font-size:15px}
   #play.narrow .hud .marks i{width:12px;height:12px} #play.narrow .hud{grid-template-columns:1fr}
   #play.narrow .hud .iconbtn{height:30px}
+}
+
+/* very short landscape (e.g. the Claude app held sideways, ~260px tall): the repair panel has no room for the lot line or the
+   status chip. Both already show on the machine tag (LOT 8089 / WARNING / LOCKED OUT) and the suspect list, so drop them here
+   instead of cutting them off or growing the panel over Mike. Taller screens (itch fullscreen, desktop) keep the full panel. */
+/* short landscape with a bit more room (itch fullscreen on a phone): lot line goes under the machine name, not cut off */
+#play.narrow .stage .rp .rp-h{flex-wrap:wrap;row-gap:1px} #play.narrow .stage .rp .rp-h .txt{flex-basis:100%;white-space:normal}
+@media (orientation:landscape) and (max-height:300px){
+  #play .stage .rp .rp-h{gap:4px} #play .stage .rp .rp-h .txt,#play .stage .rp .rp-h .chip{display:none}
+  #play .stage .rp .rp-h b{font-size:12px;letter-spacing:0}
 }

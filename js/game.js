@@ -566,8 +566,20 @@ function img(k,x,y,h,flip){ const i=IMG[k]; if(!i||!i.width) return 0; const w=i
   if(flip){ ctx.save(); ctx.translate(x,0); ctx.scale(-1,1); ctx.drawImage(i,-w/2,y-h,w,h); ctx.restore(); } else ctx.drawImage(i,x-w/2,y-h,w,h); return w; }
 function rrect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 function text(t,x,y,size,color,font){ ctx.font=`${size}px ${font||"'Lilita One',Impact,sans-serif"}`; ctx.textAlign="center"; ctx.lineWidth=4; ctx.strokeStyle="rgba(0,0,0,.8)"; ctx.strokeText(t,x,y); ctx.fillStyle=color; ctx.fillText(t,x,y); }
+// Repair panel placement: normally 33% down the floor. While Mike is standing at the machine (warning / down, before
+// lockout) his head reaches higher than when he kneels to repair, so lift the panel until its bottom clears his head.
+const MIKE_HEAD_Y=FEET-190;   // top of his cap in floor coordinates (idle sprite is 196 tall, a few px are transparent)
+function placePanel(){
+  const rp=$("rp"); if(rp.hidden||!G) return;
+  const m=G.ch.mike.at>=0?G.mach[G.ch.mike.at]:null, standing=!!m&&!m.locked;
+  const sh=$("stage").clientHeight; if(!sh) return;
+  let top=.33*sh;
+  if(standing) top=Math.max(.15*sh,   // never above 15%: the suspect-lot banner lives there
+     Math.min(top, MIKE_HEAD_Y/H*sh-rp.offsetHeight-4));
+  const v=Math.round(top)+"px"; if(rp.style.top!==v) rp.style.top=v;
+}
 function draw(){
-  if(!cv.width) return;
+  if(!cv.width) return; placePanel();
   ctx.setTransform(SCALE*DPR,0,0,SCALE*DPR,0,0); ctx.imageSmoothingQuality="high";
   const g=G||newGame();
   if(IMG.bg&&IMG.bg.width) ctx.drawImage(IMG.bg,0,0,W,H); else { ctx.fillStyle="#123"; ctx.fillRect(0,0,W,H); }
@@ -647,10 +659,12 @@ function drawChar(id,g){
   if(on){ ctx.strokeStyle="#ffcc1f"; ctx.lineWidth=4; ctx.shadowColor="#ffcc1f"; ctx.shadowBlur=12; ctx.beginPath(); ctx.ellipse(c.x,FEET+2,48,11,0,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0; }
   img(k,x,y,h,flip);
   // marker over head: gold chevron for the one you control, red ! where you're needed
-  const top=y-(k==="mike_repair"?150:200), n=needs(id), mx=(id==="mq"&&U>1)?c.x-62:c.x;   // keep Mister Quality's marker off the box labels
+  const top=y-(k==="mike_repair"?150:200), n=needs(id);
+  // Mister Quality stands under the moving boxes, so his ! sits beside his head, not above it, and never covers a lot number
+  const mx=id==="mq"?c.x-58*Math.min(U,1.4):c.x, my=id==="mq"?FEET-150:top-10;
   if(on){ ctx.fillStyle="#ffcc1f"; ctx.beginPath(); ctx.moveTo(c.x-11,top-14); ctx.lineTo(c.x+11,top-14); ctx.lineTo(c.x,top); ctx.fill(); }
-  else if(n&&G&&G.state==="run"){ const r=(14+2*Math.sin(G.t*9))*Math.min(U,1.4); ctx.fillStyle="#d42a2a"; ctx.beginPath(); ctx.arc(mx,top-10,r,0,Math.PI*2); ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle="#fff"; ctx.stroke();
-    ctx.fillStyle="#fff"; ctx.font=`${Math.round(20*Math.min(U,1.4))}px 'Lilita One',Impact,sans-serif`; ctx.textAlign="center"; ctx.fillText("!",mx,top-10+7*Math.min(U,1.4)); }
+  else if(n&&G&&G.state==="run"){ const r=(14+2*Math.sin(G.t*9))*Math.min(U,1.4); ctx.fillStyle="#d42a2a"; ctx.beginPath(); ctx.arc(mx,my,r,0,Math.PI*2); ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle="#fff"; ctx.stroke();
+    ctx.fillStyle="#fff"; ctx.font=`${Math.round(20*Math.min(U,1.4))}px 'Lilita One',Impact,sans-serif`; ctx.textAlign="center"; ctx.fillText("!",mx,my+7*Math.min(U,1.4)); }
 }
 function drawAlert(g){ ctx.save(); const A=Math.min(U,1.35); ctx.translate(W/2,0); ctx.scale(A,A); ctx.translate(-W/2,0); drawAlertInner(g); ctx.restore(); }
 function drawAlertInner(g){
